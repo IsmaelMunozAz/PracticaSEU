@@ -45,14 +45,14 @@ static int nodo_init(void){
 		retval= alloc_chrdev_region(&device_number,0,MAX_DEVICES,"embedded");
 	}else{
 		device_number= MKDEV(180,0);
-		retval= register_chdev_region(device_number,MAX_DEVICES,"embedded");
+		retval= register_chrdev_region(device_number,MAX_DEVICES,"embedded");
 	}
 	if(!retval){
 		major=MAJOR(device_number);
 		my_class=class_create(THIS_MODULE, "my_driver_class");
 		for(i=0;i<MAX_DEVICES;i++){
 			my_device=MKDEV(major,i);
-			cdev_init(&my_cdev[i]);
+			cdev_init(&my_cdev[i],&seq_fops);
 			retval=cdev_add(&my_cdev[i],my_device,1);
 			if(retval){
 				pr_info("%s: Failed in adding cdev to subsystem " "retval:%d\n", __func__,retval);
@@ -70,7 +70,17 @@ static int nodo_init(void){
 
 
 static void nodo_exit(void){
-	int i=0;
+	int i;
+	int major=MAJOR(device_number);
+	dev_t my_device;
+	for (i=0;i<MAX_DEVICES;i++){
+		my_device=MKDEV(major,1);
+		cdev_del(&my_cdev[i]);
+		device_destroy(my_class,my_device);
+	}
+	class_destroy(my_class);
+	unregister_chrdev_region(device_number,MAX_DEVICES);
+	pr_info("%s: In exit\n", __func__);
 
 }
 
