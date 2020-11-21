@@ -70,6 +70,7 @@ static int nodo_init(void){
 
 
 static void nodo_exit(void){
+	int i=0;
 
 }
 
