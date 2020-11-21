@@ -73,3 +73,5 @@ static void nodo_exit(void){
 
 }
 
+module_init(nodo_init);
+module_exit(nodo_exit);
