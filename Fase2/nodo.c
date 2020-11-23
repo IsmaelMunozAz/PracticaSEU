@@ -5,7 +5,9 @@
 #include <linux/cdev.h>
 #include <linux/moduleparam.h>
 #include <linux/device.h>
-
+#include <linux/slab.h>
+#include <linux/seq_file.h>
+#include <linux/vmalloc.h>
 
 
 MODULE_LICENSE("Dual BSD/GPL");
@@ -24,7 +26,7 @@ struct cdev my_cdev[MENOR];
 
 
 static int stat_seq_open(struct inode *inode, struct file *filp) {
-	/*unsigned int *ptr;
+	unsigned int *ptr;
 	struct seq_file *file_open;
     unsigned size=4096*(1+num_possible_cpus()/32);
 	pr_info("%d\n",size);
@@ -33,7 +35,7 @@ static int stat_seq_open(struct inode *inode, struct file *filp) {
 		pr_info("Error allocating memory\n");
 	file_open=filp->private_data;
 	file_open->private=ptr;
-	kfree(ptr);*/
+	kfree(ptr);
 	return 0;
 }
 
