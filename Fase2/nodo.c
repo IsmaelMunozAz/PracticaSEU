@@ -8,11 +8,14 @@
 #include <linux/slab.h>
 #include <linux/seq_file.h>
 #include <linux/vmalloc.h>
+#include <linux/pagemap.h>
+
 
 
 MODULE_LICENSE("Dual BSD/GPL");
 
 #define MENOR 1
+#define KPMSIZE sizeof(u64)
 
 static int minor = MENOR;
 
@@ -48,6 +51,34 @@ static ssize_t stat_seq_write(struct file *filp, const char __user *buf, size_t 
 }
 
 static ssize_t stat_seq_read(struct file *filp, char __user *buf, size_t count, loff_t *f_pos) {
+	u64 __user *out = (u64 __user *)buf;
+	u64 pcount;
+	struct page *ppages=NULL;
+	long src=*f_pos;
+	long pfn;
+
+	pfn=src/KPMSIZE;
+	count=min_t(size_t,count, (max_pfn*KPMSIZE)-src);
+	if(src & KPMSIZE || count & KPMSIZE)
+		return -EINVAL;
+	while(count>0){
+		if(pfn_valid(pfn)){
+			ppages=pfn_to_page(pfn);
+		}
+		pfn++;
+		if(!ppages){
+			pcount=0;
+		}
+		else{
+			pcount=page_mapcount(ppages);
+		}
+		if(put_user(pcount,out++)){
+			return -EFAULT;
+		}
+		count=count-KPMSIZE;
+	}
+	*f_pos += (char __user *)out - buf;
+
     return 0;
 }
 
